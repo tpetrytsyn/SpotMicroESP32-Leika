@@ -116,8 +116,29 @@ Build flags come from three ini files merged by `extra_configs`:
 
 Board-specific pin assignments (`SDA_PIN`, `SCL_PIN`, `WS2812_PIN`, camera model, …) live per-env in `platformio.ini`, not in the ini files above.
 
+## Git and GitHub
+
+**Always use SSH remotes, never HTTPS.** GitHub has disabled password authentication for Git operations, so an `https://github.com/...` remote fails with `Password authentication is not supported for Git operations` unless a token is configured. SSH keys are already set up here.
+
+```bash
+git remote set-url origin git@github.com:<owner>/<repo>.git   # not https://
+ssh -T git@github.com                                          # verify identity
+```
+
+Remote layout:
+
+| Remote     | Points at            | Use                                    |
+| ---------- | -------------------- | -------------------------------------- |
+| `origin`   | `tpetrytsyn` fork    | Push work here                          |
+| `upstream` | `runeharlyk` original | `git fetch upstream` to pull changes in |
+
+**Never commit or push credentials.** No tokens, private keys, `.env` files, or passwords — not in code, commit messages, or config. If a secret is needed, read it from the environment.
+
+Repo-specific trap: [esp32/factory_settings.ini](esp32/factory_settings.ini) is **tracked**, and holds `FACTORY_WIFI_SSID` / `FACTORY_WIFI_PASSWORD`. They ship empty. Do not commit real network credentials there — set Wi-Fi at runtime through the web UI or the `/api/wifi/sta/settings` endpoint, which persists to LittleFS rather than to git. The same applies to `FACTORY_AP_PASSWORD` if you change it from the default.
+
+Commit messages start with a gitmoji (`♻️`, `⚡`, `🎨`, `🐛`, `✨`, `📝`, …).
+
 ## Conventions
 
 - Firmware: 4-space indent, ~120 col, `#pragma once` in newer headers (older ones use include guards), headers-only for templates and motion states. Peripherals are two-layered: raw chip drivers in `esp32/include/peripherals/drivers/` (`mpu6050.h`, `bno055.h`, `hmc5883l.h`, `pca9685.h`, …) wrapped by role-level classes (`imu.h`, `magnetometer.h`, `barometer.h`) that implement `SensorBase<T>` from `sensor.hpp` and are aggregated by `Peripherals`.
 - Frontend: prettier config is unusual — 4-space tabs, single quotes, **no semicolons**, no trailing commas, `arrowParens: avoid`, `experimentalTernaries`. Always `pnpm format` rather than matching by hand.
-- Commit messages in this repo start with a gitmoji (`♻️`, `⚡`, `🎨`, …).
