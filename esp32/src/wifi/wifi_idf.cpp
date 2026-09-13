@@ -496,6 +496,16 @@ bool WiFiClass::softAP(const char* ssid, const char* password, int channel, bool
         return false;
     }
 
+    // mode() only calls esp_wifi_start() when leaving WIFI_MODE_NULL. If the radio
+    // was already in AP/APSTA mode the driver was configured but never started, so
+    // no beacon is transmitted. Starting again when already running returns ESP_OK.
+    err = esp_wifi_start();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to start WiFi for AP: %s", esp_err_to_name(err));
+        return false;
+    }
+    _mode = getMode();
+
     return true;
 }
 
