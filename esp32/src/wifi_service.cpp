@@ -10,7 +10,9 @@ WiFiService::WiFiService()
       _persistence(WiFiSettings_read, WiFiSettings_update, this, WIFI_SETTINGS_FILE, api_WifiSettings_fields,
                    api_WifiSettings_size, WiFiSettings_defaults()),
       _lastConnectionAttempt(0),
-      _stopping(false) {
+      _stopping(false),
+      _staSettleStart(0),
+      _staAttempted(false) {
     addUpdateHandler([&](const std::string &originId) { reconfigureWiFiConnection(); }, false);
 }
 
@@ -40,6 +42,13 @@ void WiFiService::begin() {
 void WiFiService::reconfigureWiFiConnection() {
     _lastConnectionAttempt = 0;
     if (WiFi.disconnect(true)) _stopping = true;
+
+    // Arm manageSTA() for a fresh attempt. Without this the settings are stored
+    // but never dialled: provisioning the first network at runtime leaves
+    // _staAttempted latched from an earlier pass, so a corrected password or a
+    // newly added network would not be tried until the next reboot.
+    _staSettleStart = 0;
+    _staAttempted = false;
 }
 
 void WiFiService::selectNetwork(uint32_t index) {
@@ -139,22 +148,25 @@ esp_err_t WiFiService::getNetworkStatus(httpd_req_t *request) {
 
 void WiFiService::manageSTA() {
     if (WiFi.isConnected() || state().wifi_networks_count == 0) return;
-    wifi_mode_t mode = WiFi.getMode();
-    if (mode == WIFI_MODE_NULL || mode == WIFI_MODE_AP) return;
+    // WIFI_MODE_AP is deliberately not excluded here. begin() only switches the
+    // radio to STA when a network was already persisted at boot, so a board
+    // provisioned through its own soft AP is still in AP mode at this point.
+    // Bailing out on that left manageAP() holding the AP up until STA connected
+    // and manageSTA() refusing to connect while the AP was up - a deadlock only
+    // a reboot escaped. WiFi.begin() promotes AP to APSTA on its own, which
+    // keeps the provisioning client attached while the station dials out.
+    if (WiFi.getMode() == WIFI_MODE_NULL) return;
 
-    static uint32_t startTime = 0;
-    static bool attempted = false;
-
-    if (startTime == 0) {
-        startTime = esp_timer_get_time() / 1000;
+    if (_staSettleStart == 0) {
+        _staSettleStart = esp_timer_get_time() / 1000;
         return;
     }
 
     uint32_t now = esp_timer_get_time() / 1000;
-    if (now - startTime < 3000) return;
+    if (now - _staSettleStart < staSettleDelay) return;
 
-    if (!attempted && state().wifi_networks_count > 0) {
-        attempted = true;
+    if (!_staAttempted) {
+        _staAttempted = true;
         uint32_t idx = state().selected_network;
         if (idx >= state().wifi_networks_count) idx = 0;
         ESP_LOGI(TAG, "Connecting to: %s", state().wifi_networks[idx].ssid);

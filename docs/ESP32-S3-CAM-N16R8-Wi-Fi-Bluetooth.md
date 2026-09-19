@@ -344,8 +344,23 @@ board, and none is specific to this hardware.
    claimed success. Fixed by calling `esp_wifi_start()` in `softAP()` and
    resyncing the cached `_mode`.
 
+4. **Provisioning the first network over the soft AP never connected.**
+   `WiFiService::begin()` switches the radio to STA only when a network is
+   already persisted at boot, and `reconfigureWiFiConnection()` - the settings
+   update handler - only disconnected. So a board provisioned through its own AP
+   stayed in `WIFI_MODE_AP`, where `manageSTA()` bailed out on its mode guard
+   while `manageAP()` held the AP up until STA reached `WL_CONNECTED`. The
+   credentials persisted and the UI reported success, but nothing ever dialled
+   out; only a reboot escaped it. Fixed by dropping the `WIFI_MODE_AP` guard in
+   `manageSTA()` - `WiFi.begin()` already promotes AP to APSTA - and by making
+   the attempt latch a member that `reconfigureWiFiConnection()` resets, so a
+   corrected password is retried without a reboot.
+
 Bugs 2 and 3 compound: any build that boots without stored Wi-Fi credentials is
-unreachable over the network, and `FACTORY_WIFI_SSID` is empty by default.
+unreachable over the network, and `FACTORY_WIFI_SSID` is empty by default. Bug 4
+then blocked the documented recovery path - the captive portal - so a fresh
+board could only be provisioned by flashing credentials or rebooting after
+saving them.
 
 A latent issue, not fixed: [`camera_service.cpp:17-36`](../esp32/src/peripherals/camera_service.cpp#L17-L36)
 creates `cameraMutex` with `xSemaphoreCreateMutex()` (non-recursive) but uses
