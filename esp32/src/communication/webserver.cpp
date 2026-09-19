@@ -22,6 +22,11 @@ void WebServer::config(size_t maxUriHandlers, size_t stackSize) {
     config_.stack_size = stackSize;
     config_.max_resp_headers = 16;
     config_.lru_purge_enable = true;
+    // Must stay <= CONFIG_LWIP_MAX_SOCKETS - 3 or httpd_start() fails with
+    // ESP_ERR_INVALID_ARG. sdkconfig.defaults raises that to 16, so 13 is the
+    // ceiling; 12 keeps one spare. The IDF default of 7 is too few - a single
+    // browser takes all of them - see the note in sdkconfig.defaults.
+    config_.max_open_sockets = 12;
     config_.uri_match_fn = httpd_uri_match_wildcard;
 }
 
