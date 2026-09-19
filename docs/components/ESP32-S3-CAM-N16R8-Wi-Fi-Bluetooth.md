@@ -99,11 +99,11 @@ The board ships with an **RHYX M21-45**, which is a **GC2415** sensor with **no
 onboard JPEG encoder** — it outputs only RGB565, YCbCr422, and raw Bayer. Two
 independent blockers:
 
-1. [`camera_service.cpp:69`](../esp32/src/peripherals/camera_service.cpp#L69)
+1. [`camera_service.cpp:69`](../../esp32/src/peripherals/camera_service.cpp#L69)
    hardcodes `camera_config.pixel_format = PIXFORMAT_JPEG`, and the HTTP paths
    (`cameraStill`, `cameraStream`) send `image/jpeg` straight from the framebuffer.
 2. There is no `gc2415.c` in
-   [`managed_components/espressif__esp32-camera/sensors/`](../managed_components/espressif__esp32-camera/sensors/),
+   [`managed_components/espressif__esp32-camera/sensors/`](../../managed_components/espressif__esp32-camera/sensors/),
    so `esp_camera_init()` fails the SCCB probe outright.
 
 **Replace it.** OV2640, OV3660 and OV5640 are all supported — `ov2640.c`,
@@ -117,7 +117,7 @@ needed for the sensor swap**.
 The DVP pins are not broken out, so they cannot be read off the board. This
 board follows the Espressif reference layout, already present in this repo as
 `CAMERA_MODEL_ESP32S3_EYE` at
-[`camera_pins.h:275-293`](../esp32/include/peripherals/camera_pins.h#L275-L293):
+[`camera_pins.h:275-293`](../../esp32/include/peripherals/camera_pins.h#L275-L293):
 
 | Signal | GPIO | Signal | GPIO |
 | --- | --- | --- | --- |
@@ -149,7 +149,7 @@ sensor produced a frame faster than DMA could store it, so that frame was
 dropped; the stream continues at a lower rate. The OV3660 is a 3 MP sensor and
 the defaults (`FRAMESIZE_SVGA`, `jpeg_quality = 10`) are demanding. To reduce
 it, lower the XCLK in
-[`camera_service.cpp:68`](../esp32/src/peripherals/camera_service.cpp#L68) from
+[`camera_service.cpp:68`](../../esp32/src/peripherals/camera_service.cpp#L68) from
 20 MHz to 10 MHz, or raise `jpeg_quality` to ~12. On the ESP32-S3 the XCLK is
 divided from 80 MHz, so it must divide evenly — 20, 16 and 10 MHz are valid.
 
@@ -198,7 +198,7 @@ need WCH's `CH343SER` driver package if Windows Update does not supply it.
 
 ## PlatformIO environment
 
-The env is `[env:s3cam]` in [`platformio.ini`](../platformio.ini). Neither
+The env is `[env:s3cam]` in [`platformio.ini`](../../platformio.ini). Neither
 existing S3 env fits: `[env:esp32-wroom-camera]` is configured for 8 MB flash and
 uses `SCL_PIN=21` / `WS2812_PIN=48`, **and neither IO21 nor IO48 is broken out on
 this board**.
@@ -230,11 +230,11 @@ Notes:
 
 - `qio` is correct because N16R8 (no `V` suffix) has **quad** SPI flash. An
   N16R8**V** module has OPI flash and needs `CONFIG_ESPTOOLPY_FLASHMODE_OPI`.
-- PSRAM needs no extra config: [`sdkconfig.defaults`](../sdkconfig.defaults)
+- PSRAM needs no extra config: [`sdkconfig.defaults`](../../sdkconfig.defaults)
   already sets `CONFIG_SPIRAM_MODE_OCT=y`, correct for R8. Confirmed at boot:
   `octal_psram: density 0x03 (64 Mbit)`, `esp_psram: Found 8MB PSRAM device`,
   `Speed: 80MHz`, `SPI SRAM memory test OK`.
-- [`esp32/partition_table/default_16MB.csv`](../esp32/partition_table/default_16MB.csv)
+- [`esp32/partition_table/default_16MB.csv`](../../esp32/partition_table/default_16MB.csv)
   gives 6.4 MB per app slot. Confirmed at boot: `SPI Flash Size : 16MB`, all six
   partitions loaded, LittleFS mounted with 3,538,944 bytes.
 - `monitor_rts`/`monitor_dtr` are zeroed because nothing drives the reset lines.
@@ -252,14 +252,14 @@ aborts if both are linked:
 | API | Header | Used by |
 | --- | --- | --- |
 | Legacy | `driver/i2c.h` | esp32-camera's `sccb.c` |
-| New (driver_ng) | `driver/i2c_master.h` | this project's [`i2c_bus.h`](../esp32/include/peripherals/i2c_bus.h) |
+| New (driver_ng) | `driver/i2c_master.h` | this project's [`i2c_bus.h`](../../esp32/include/peripherals/i2c_bus.h) |
 
 IDF's legacy `i2c.c` registers `check_i2c_driver_conflict()` as a
 `__attribute__((constructor))`. It runs during `do_global_ctors`, **before
 `app_main`**, and calls `abort()` if driver_ng is also linked - so the board
 boot-loops and never reaches a line of project code.
 
-[`esp32-camera/CMakeLists.txt:90`](../managed_components/espressif__esp32-camera/CMakeLists.txt#L90)
+[`esp32-camera/CMakeLists.txt:90`](../../managed_components/espressif__esp32-camera/CMakeLists.txt#L90)
 selects `sccb-ng.c` (new driver, no conflict) only for **IDF >= 5.4**; below that
 it selects legacy `sccb.c`. Hence the pioarduino platform pinned above, which
 ships IDF 5.5.5.
@@ -362,7 +362,7 @@ then blocked the documented recovery path - the captive portal - so a fresh
 board could only be provisioned by flashing credentials or rebooting after
 saving them.
 
-A latent issue, not fixed: [`camera_service.cpp:17-36`](../esp32/src/peripherals/camera_service.cpp#L17-L36)
+A latent issue, not fixed: [`camera_service.cpp:17-36`](../../esp32/src/peripherals/camera_service.cpp#L17-L36)
 creates `cameraMutex` with `xSemaphoreCreateMutex()` (non-recursive) but uses
 `xSemaphoreTakeRecursive`/`GiveRecursive` on it, and `cameraStream` calls
 `safe_sensor_return()` on a mutex that `safe_camera_fb_get()` has already
@@ -381,7 +381,7 @@ the board starts its own AP: **`Spot-Micro` / `spot-leika`** at **192.168.4.1**.
 end-to-end camera check.
 
 With `EMBED_WEBAPP=0` the root URL returns **405**, not the web UI:
-[`main.cpp:117`](../esp32/src/main.cpp#L117) registers the static-asset and
+[`main.cpp:117`](../../esp32/src/main.cpp#L117) registers the static-asset and
 SPA-fallback handlers only under that flag, leaving `/*` bound to `HTTP_OPTIONS`
 alone. API routes still work. Building the UI needs `pnpm` and `protoc`;
 `esp32/include/WWWData.h` is a generated, gitignored stub until then.
