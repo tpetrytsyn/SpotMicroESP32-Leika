@@ -118,6 +118,8 @@ Board-specific pin assignments (`SDA_PIN`, `SCL_PIN`, `WS2812_PIN`, camera model
 
 ## Git and GitHub
 
+**Never commit or push without a direct instruction to do so.** Make the changes, leave them in the working tree, and say what is pending. Only an explicit "commit this" / "push" counts. None of the following are authorisation: the user approving the work itself, saying a change looks right or works, answering a clarifying question, asking you to write or update a file, or a plan of yours that mentioned committing and drew no objection. Authorisation is per-request and does not carry forward — a previous "commit and push" does not license the next commit.
+
 **Always use SSH remotes, never HTTPS.** GitHub has disabled password authentication for Git operations, so an `https://github.com/...` remote fails with `Password authentication is not supported for Git operations` unless a token is configured. SSH keys are already set up here.
 
 ```bash
