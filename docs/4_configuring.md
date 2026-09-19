@@ -10,4 +10,7 @@ If it fails to connect, it will host an AP with a captive portal where it's poss
 
 When the robot connects successfully, the IP address will be printed to the serial monitor.
 
-<!-- ## Calibrating servos -->
+## Calibrating servos
+
+See [servo-calibration.md](servo-calibration.md) for the bench components, wiring and
+per-servo calibration parameters.
