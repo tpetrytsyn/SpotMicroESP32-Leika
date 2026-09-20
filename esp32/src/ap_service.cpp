@@ -17,7 +17,14 @@ APService::APService()
 
 APService::~APService() = default;
 
-void APService::begin() { _persistence.readFromFS(); }
+void APService::begin() {
+    _persistence.readFromFS();
+    // Force one explicit startAP() on boot. manageAP() treats "radio mode == AP"
+    // as proof the soft AP is configured, but the mode can already be AP without
+    // softAP() ever having run - leaving a mode-AP radio with no beacon and no
+    // way for manageAP() to recover.
+    _reconfigureAp = true;
+}
 
 esp_err_t APService::getStatusProto(httpd_req_t *request) {
     api_Response res = api_Response_init_zero;

@@ -3,6 +3,15 @@ CONFIG_HTTPD_WS_SUPPORT=y
 CONFIG_HTTPD_MAX_REQ_HDR_LEN=2048
 CONFIG_HTTPD_MAX_URI_LEN=1024
 
+# LWIP sockets
+# The HTTP server may use at most CONFIG_LWIP_MAX_SOCKETS - 3, so the IDF default
+# of 10 caps it at 7 - which a single browser exhausts on its own: Chrome opens up
+# to six parallel connections per host and the controller holds a seventh for the
+# /api/ws telemetry socket. A camera stream then occupies one indefinitely, so the
+# WebSocket cannot reconnect and the UI reports "disconnected" while video keeps
+# playing. 16 leaves room for a phone and a stream alongside a desktop browser.
+CONFIG_LWIP_MAX_SOCKETS=16
+
 # mDNS
 CONFIG_MDNS_MAX_SERVICES=10
 
