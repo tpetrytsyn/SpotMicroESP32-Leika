@@ -46,7 +46,7 @@ The figures this document depends on:
 | 6 | 1 × jumper (3V3) | PCA9685 logic supply — **must be 3.3 V**, see [Cautions](#cautions) |
 | 7 | **Distribution bus** — terminal block or bus bar, ×2 | 6 V servo bus and the ground star point |
 | 8 | **12 × servo extension cables** | Red conductor broken out to the bus; see [Building the harness](#building-the-harness) |
-| 9 | Wire for the bus, 18 AWG or heavier | Converter → bus, and bus → star point |
+| 9 | Wire for the bus, 18 AWG or heavier | Converter → bus, and every heavy return into the star point — including each converter's `OUT−` |
 | 10 | **1000 – 2200 µF** electrolytic, ≥ 10 V | Across the 6 V bus, close to the servos |
 | 11 | Multimeter | Verify 3.3 V logic and rail voltage *before* connecting |
 | 12 | Servo horns + mounting screws | Fitted at calibrated centre |
@@ -70,7 +70,7 @@ specifies ([1_components.md](1_components.md)).
    Bench supply 7.4 V   (stands in for 2S: 6.6 – 8.4 V)
    ──────────────────
     + ──────┬──────────────────────────────┐
-            │                              │
+         IN+│                           IN+│
         SZBK07                          CN3903
         CV = 6.0 V                      fixed 5 V
         CC = set limit                     │
@@ -83,13 +83,13 @@ specifies ([1_components.md](1_components.md)).
             │      │      │           │
        1000–2200 µF across the bus, near the servos
 
-    − ──────┬────────────────────────────────────────────┐
-            │                                            │
-       ★ GROUND STAR POINT                               │
-            ├──► servo brown ×12          (heavy return) │
-            ├──► PCA9685 GND              (signal ref)   │
-            ├──► ESP32 GND                               │
-            └──► both converter OUT− ────────────────────┘
+    − ──────► ★ GROUND STAR POINT
+                 │   one block — every return lands here, nothing chained
+                 ├──► SZBK07  IN−  and  OUT−    18 AWG — OUT− carries the servo amps
+                 ├──► CN3903  IN−  and  OUT−
+                 ├──► servo brown ×12           18 AWG — heavy return
+                 ├──► PCA9685 GND               signal reference only, thin
+                 └──► ESP32 GND
 
    PCA9685                                 ESP32-S3-CAM
    ───────                                 ───────────────
@@ -101,7 +101,7 @@ specifies ([1_components.md](1_components.md)).
     CH0..CH11 signal ──► servo orange ×12    (signal only)
 ```
 
-### The three rules that make it work
+### The four rules that make it work
 
 1. **`V+` stays unconnected.** The PCA9685 IC needs only `VCC`, `GND`, `SDA` and `SCL` —
    it never carries servo current. Leaving `V+` off keeps every amp off the board's thin
@@ -111,6 +111,14 @@ specifies ([1_components.md](1_components.md)).
 3. **One wire from the star point to `PCA9685 GND`.** PWM is referenced to ground; without
    it the servos have no valid reference and will jitter or ignore commands entirely. That
    wire carries reference current only, so it can be thin.
+4. **Both converters land `IN−` *and* `OUT−` on the star point.** A buck's output is a
+   loop that has to close back on the converter: servo current returns through
+   `SZBK07 OUT−`, the ESP32's through `CN3903 OUT−`. These are not reference wires — the
+   SZBK07's `OUT−` carries every amp the twelve servos draw, so it wants the same gauge as
+   the bus feed. Both modules are non-isolated, so `IN−` and `OUT−` are already the same
+   copper inside; wiring both externally is what keeps that return off the converter's own
+   ground pour, where it would drop voltage across the feedback reference and spoil
+   regulation.
 
 ### Building the harness
 
