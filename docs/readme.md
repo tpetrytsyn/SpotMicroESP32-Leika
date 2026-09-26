@@ -35,6 +35,7 @@ Parts **evaluated and not chosen**, kept for reference in
 [components/alternatives/](components/alternatives/):
 
 - [LM2596S CC/CV module](components/alternatives/LM2596S-CC-CV-module.md) — adjustable 5 V, superseded by the CN3903
+- [ASW-07D-2 toggle switch](components/alternatives/ASW-07D-2-toggle-switch.md) — DC-rated main switch, the alternative to the rocker
 
 Procedures that use them:
 

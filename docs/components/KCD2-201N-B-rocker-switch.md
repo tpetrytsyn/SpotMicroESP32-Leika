@@ -23,6 +23,11 @@ Confidence follows [ESP32-S3-CAM-N16R8-Wi-Fi-Bluetooth.md](ESP32-S3-CAM-N16R8-Wi
 > **30 A is an AC figure, and optimistic for a switch this size.** Rockers in this body are
 > more commonly rated 15–20 A. Treat the rating as unverified.
 
+> **Alternative on record:** the [ASW-07D-2 toggle](alternatives/ASW-07D-2-toggle-switch.md)
+> is DC-rated and takes a round 12.2 mm hole, which suits the Kubina rear cover's 19 mm
+> button hole with a reducer ring. Swap to it if this rocker's 22 × 30.8 mm cutout does not
+> fit the shell.
+
 ## Why an AC-only rating is acceptable here
 
 Breaking DC is harder than AC because DC has no zero crossing to extinguish the arc. At
@@ -68,3 +73,5 @@ asleep until the rocker power-cycles it. Prefer switching off over UI sleep.
 
 - [ ] **Confirm the lamp type** on the delivered part, before connecting its terminal.
 - [ ] **Plan the 22 × 30.8 mm cutout** in the body, reachable without lifting the robot.
+      Kubina's rear cover has only a round 19 mm button hole, so this needs a reworked
+      cover — or the [toggle alternative](alternatives/ASW-07D-2-toggle-switch.md).
