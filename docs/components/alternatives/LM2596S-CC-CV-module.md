@@ -81,7 +81,7 @@ sit in CV during normal operation, never CC.
 ## If used for the 5 V rail
 
 Should you fall back to this module instead of the CN3903, from the shared 2S battery rail
-([servo-calibration.md](../../servo-calibration.md)):
+([wiring.md](../../wiring.md)):
 
 | | |
 | --- | --- |

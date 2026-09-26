@@ -24,6 +24,12 @@ each one up.
 - [DS3235 / TD-8135MG servo](components/DS3235-TD-8135MG-servo.md) — 35 kg leg servo
 - [SZBK07 buck converter](components/SZBK07-buck-converter.md) — 300 W CC/CV, servo rail
 - [CN3903 buck module](components/CN3903-5V-buck-module.md) — fixed 5 V for the controller
+- [ZOP Power 2S 1500 mAh LiPo](components/ZOP-Power-2S-1500mAh-LiPo.md) — main battery, no BMS
+- [Daier F114-C / F117-C fuse holders](components/Daier-blade-fuse-holders.md) — 15 A main and 2 A branch fuses
+- [KCD2-201N-B rocker switch](components/KCD2-201N-B-rocker-switch.md) — main power switch, the only on/off
+- [ADS1115 ADC](components/ADS1115-16bit-ADC.md) — 16-bit, 4 analog inputs over I2C, for monitoring
+- [ACS712 30 A current sensor](components/ACS712-30A-current-sensor.md) — pack current
+- [Voltage sensor 0–25 V](components/Voltage-sensor-0-25V-divider.md) — ÷5 divider, pack voltage
 
 Parts **evaluated and not chosen**, kept for reference in
 [components/alternatives/](components/alternatives/):
@@ -32,7 +38,8 @@ Parts **evaluated and not chosen**, kept for reference in
 
 Procedures that use them:
 
-- [Servo calibration](servo-calibration.md) — bench components, wiring and parameters
+- [Wiring and power](wiring.md) — the harness: power path, fuses, grounding, I2C, monitoring
+- [Servo calibration](servo-calibration.md) — bench setup and per-servo parameters
 
 ## About Spot
 

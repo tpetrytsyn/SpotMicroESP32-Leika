@@ -51,7 +51,8 @@ chassis, or a bad calibration value that parks a servo against its stop will pul
 current indefinitely. With CC set, the rail current folds back instead of feeding it.
 
 Set CC deliberately rather than leaving it at maximum. See
-[servo-calibration.md](../servo-calibration.md) for bench values.
+[wiring.md](../wiring.md#current-limit-cc) for the assembled value and
+[servo-calibration.md](../servo-calibration.md#current-limit-during-calibration) for the bench value.
 
 ## Headroom
 

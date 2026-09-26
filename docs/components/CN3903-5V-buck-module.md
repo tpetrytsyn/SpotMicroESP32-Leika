@@ -56,7 +56,7 @@ Setup reduces to soldering four wires.
 ## Use in this project
 
 Feeding the ESP32's 5 V from the shared 2S battery rail
-([servo-calibration.md](../servo-calibration.md)):
+([wiring.md](../wiring.md)):
 
 | | |
 | --- | --- |

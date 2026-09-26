@@ -12,5 +12,6 @@ When the robot connects successfully, the IP address will be printed to the seri
 
 ## Calibrating servos
 
-See [servo-calibration.md](servo-calibration.md) for the bench components, wiring and
-per-servo calibration parameters.
+See [wiring.md](wiring.md) for the power and logic wiring, and
+[servo-calibration.md](servo-calibration.md) for the bench setup and per-servo calibration
+parameters.

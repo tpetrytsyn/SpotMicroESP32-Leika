@@ -101,7 +101,7 @@ them as good planning numbers rather than guaranteed limits.
 
 **Voltage:** trust the case. 3.7 V is implausible as a *working* minimum for a 35 kg
 digital servo and is more likely a copy-paste artefact. **6 V sits safely inside every
-version of the range** and is what [servo-calibration.md](../servo-calibration.md) assumes.
+version of the range** and is what [wiring.md](../wiring.md) assumes.
 
 **Speed:** the two sources differ by more than 2×. The seller's 0.15 s/60° is a
 20 kg-class figure; the reference 0.32 s/60° is more plausible for 35 kg at low voltage.
