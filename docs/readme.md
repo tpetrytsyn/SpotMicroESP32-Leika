@@ -14,10 +14,20 @@ These are the steps it takes to get a fresh new robot up and barking.
 1. [Developing](6_developing.md)
 1. [Contributing](7_contributing.md)
 
-## Hardware components
+## Hardware
 
-Parts **used in this build** — pinouts, specifications, and the quirks found bringing
-each one up.
+Sources are marked throughout: **[listing]** seller, **[manufacturer]** maker's page, **[photo]**
+product images, **[owner]** checked on the delivered part, **[datasheet]** part spec, **[code]**
+this repo, and **[inferred]** reasoned — confirm on hardware.
+
+Procedures, in build order:
+
+1. [Wiring and power](wiring.md) — the harness reference: power path, fuses, grounding, I2C, monitoring
+1. [Pre-calibration build](pre-calibration-build.md) — wiring it block by block, with a test after each
+1. [Servo calibration](servo-calibration.md) — per-servo parameters, on the finished harness
+
+Parts **used in this build** — specifications, pinouts and the quirks found bringing each one
+up.
 
 - [ESP32-S3-CAM N16R8 (HW-679)](components/ESP32-S3-CAM-N16R8-Wi-Fi-Bluetooth.md) — controller board
 - [CH343P USB-Serial (WeAct)](components/CH343P-USB-Serial-WeAct.md) — flashing adapter
@@ -36,11 +46,6 @@ Parts **evaluated and not chosen**, kept for reference in
 
 - [LM2596S CC/CV module](components/alternatives/LM2596S-CC-CV-module.md) — adjustable 5 V, superseded by the CN3903
 - [ASW-07D-2 toggle switch](components/alternatives/ASW-07D-2-toggle-switch.md) — DC-rated main switch, the alternative to the rocker
-
-Procedures that use them:
-
-- [Wiring and power](wiring.md) — the harness: power path, fuses, grounding, I2C, monitoring
-- [Servo calibration](servo-calibration.md) — bench setup and per-servo parameters
 
 ## About Spot
 
