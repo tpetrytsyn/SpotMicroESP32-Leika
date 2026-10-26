@@ -1,13 +1,15 @@
-import { DownloadOTAData, RSSIData } from '$lib/platform_shared/message'
+import { BatteryData, DownloadOTAData, RSSIData } from '$lib/platform_shared/message'
 import { writable } from 'svelte/store'
 
 type telemetry_data_type = {
     rssi: RSSIData
+    battery: BatteryData
     download_ota: DownloadOTAData
     latency: number
 }
 const telemetry_data: telemetry_data_type = {
     rssi: RSSIData.create(),
+    battery: BatteryData.create(),
     download_ota: DownloadOTAData.create(),
     latency: -1
 }
@@ -20,6 +22,12 @@ function createTelemetry() {
         setRSSI: (data: RSSIData) => {
             update(telemetry_data => {
                 telemetry_data.rssi = data
+                return telemetry_data
+            })
+        },
+        setBattery: (data: BatteryData) => {
+            update(telemetry_data => {
+                telemetry_data.battery = data
                 return telemetry_data
             })
         },

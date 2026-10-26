@@ -1,8 +1,10 @@
 <script lang="ts">
     import { page } from '$app/state'
     import { telemetry } from '$lib/stores/telemetry'
+    import { useFeatureFlags } from '$lib/stores'
 
     import RssiIndicator from '$lib/components/statusbar/RSSIIndicator.svelte'
+    import BatteryIndicator from '$lib/components/statusbar/BatteryIndicator.svelte'
     import UpdateIndicator from '$lib/components/statusbar/UpdateIndicator.svelte'
     import SleepButton from './SleepButton.svelte'
     import ThemeButton from './ThemeButton.svelte'
@@ -10,6 +12,8 @@
     import StopButton from './StopButton.svelte'
     import ViewSelector from './ViewSelector.svelte'
     import { Hamburger } from '../icons'
+
+    const features = useFeatureFlags()
 </script>
 
 <div class="navbar bg-base-300 sticky top-0 z-10 h-12 min-h-fit drop-shadow-lg lg:h-16 gap-2 pr-0">
@@ -29,6 +33,10 @@
     <FullscreenButton />
 
     <ThemeButton />
+
+    {#if $features.battery}
+        <BatteryIndicator voltage={$telemetry.battery.voltage} />
+    {/if}
 
     <RssiIndicator rssi={$telemetry.rssi.rssi} />
 

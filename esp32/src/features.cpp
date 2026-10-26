@@ -15,6 +15,7 @@ void printFeatureConfiguration() {
     ESP_LOGI("Features", "USE_HMC5883: %s", USE_HMC5883 ? "enabled" : "disabled");
     ESP_LOGI("Features", "USE_BMP180: %s", USE_BMP180 ? "enabled" : "disabled");
     ESP_LOGI("Features", "USE_USS: %s", USE_USS ? "enabled" : "disabled");
+    ESP_LOGI("Features", "USE_ADS1115: %s", USE_ADS1115 ? "enabled" : "disabled");
 
     ESP_LOGI("Features", "USE_PCA9685: %s", USE_PCA9685 ? "enabled" : "disabled");
     ESP_LOGI("Features", "USE_WS2812: %s", USE_WS2812 ? "enabled" : "disabled");
@@ -35,6 +36,7 @@ void features_request(const socket_message_FeaturesDataRequest& fd_req, socket_m
     fd_res.ws2812 = USE_WS2812 ? true : false;
     fd_res.mdns = USE_MDNS ? true : false;
     fd_res.embed_www = EMBED_WEBAPP ? true : false;
+    fd_res.battery = USE_ADS1115 ? true : false;
     fd_res.firmware_version = const_cast<char*>(APP_VERSION);
     fd_res.firmware_name = const_cast<char*>(APP_NAME);
     fd_res.firmware_built_target = const_cast<char*>(BUILD_TARGET);

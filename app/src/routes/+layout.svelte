@@ -22,6 +22,7 @@
     } from '$lib/stores'
     import {
         AnglesData,
+        BatteryData,
         DownloadOTAData,
         ControllerData,
         KinematicData,
@@ -66,6 +67,7 @@
             socket.onEvent('close', handleClose),
             socket.onEvent('error', handleError),
             socket.on(RSSIData, data => telemetry.setRSSI(data)),
+            socket.on(BatteryData, data => telemetry.setBattery(data)),
             socket.on(ModeData, data => mode.set(data)),
             socket.on(AnglesData, data => {
                 servoAngles.set(data)
@@ -88,6 +90,7 @@
     const handleClose = () => {
         notifications.error('Connection to device lost', 5000)
         telemetry.setRSSI(RSSIData.create({ rssi: 0 }))
+        telemetry.setBattery(BatteryData.create({ voltage: 0 }))
         input.update(data => ({ ...data, left: { x: 0, y: 0 }, right: { x: 0, y: 0 } }))
     }
 

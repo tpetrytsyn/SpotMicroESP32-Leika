@@ -20,6 +20,7 @@
 #include <peripherals/magnetometer.h>
 #include <peripherals/barometer.h>
 #include <peripherals/gesture.h>
+#include <peripherals/battery.h>
 
 /*
  * Ultrasonic Sensor Settings
@@ -40,6 +41,7 @@ class Peripherals : public StatefulService<PeripheralsConfiguration> {
 
     void getI2CScanProto(socket_message_I2CScanData &data);
     void getIMUProto(socket_message_IMUData &data);
+    bool getBatteryProto(socket_message_BatteryData &data);
     void getSettingsProto(socket_message_PeripheralSettingsData &data);
 
     /* IMU FUNCTIONS */
@@ -52,6 +54,8 @@ class Peripherals : public StatefulService<PeripheralsConfiguration> {
     bool readGesture();
 
     void readSonar();
+
+    bool readBattery();
 
     float angleX();
 
@@ -87,6 +91,9 @@ class Peripherals : public StatefulService<PeripheralsConfiguration> {
 #endif
 #if FT_ENABLED(USE_PAJ7620U2)
     GestureSensor _gesture;
+#endif
+#if FT_ENABLED(USE_ADS1115)
+    Battery _battery;
 #endif
 #if FT_ENABLED(USE_USS)
     std::unique_ptr<NewPing> _left_sonar;

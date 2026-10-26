@@ -37,6 +37,7 @@ message FeaturesDataResponse {
     bool ws2812 = 110;
     bool mdns = 120;
     bool embed_www = 130;
+    bool battery = 140;
 }
 
 message FeaturesDataRequest { }
@@ -159,6 +160,8 @@ message WifiSettingsData { string hostname = 1; bool priority_rssi = 2; repeated
 
 message RSSIData { int32 rssi = 1; }
 
+message BatteryData { float voltage = 1; }
+
 message DownloadOTAData { string status = 1; int32 progress = 2; string error = 3; }
 
 message SonarData { string dummy_field = 1; }
@@ -230,5 +233,6 @@ message Message {
         WifiSettingsData wifi_settings = 240;
         ControllerData controller_data = 250;
         RSSIData rssi = 260;
+        BatteryData battery = 270;
     }
 }

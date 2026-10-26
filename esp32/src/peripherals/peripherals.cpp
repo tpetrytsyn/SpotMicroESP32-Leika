@@ -6,7 +6,7 @@ Peripherals::Peripherals()
                     API_RESPONSE_ASSIGNER(peripheral_settings, api_PeripheralSettings)),
       _persistence(PeripheralsConfiguration_read, PeripheralsConfiguration_update, this, PERIPHERAL_SETTINGS_FILE,
                    api_PeripheralSettings_fields, api_PeripheralSettings_size, PeripheralsConfiguration_defaults()) {
-    _accessMutex = xSemaphoreCreateMutex();
+    _accessMutex = xSemaphoreCreateRecursiveMutex();
     addUpdateHandler([&](const std::string &originId) { updatePins(); }, false);
 }
 
@@ -27,6 +27,9 @@ void Peripherals::begin() {
 #if FT_ENABLED(USE_PAJ7620U2)
     if (!_gesture.initialize()) ESP_LOGE("Peripherals", "Gesture sensor initialize failed");
 #endif
+#if FT_ENABLED(USE_ADS1115)
+    if (!_battery.initialize()) ESP_LOGE("Peripherals", "Battery monitor initialize failed");
+#endif
 #if FT_ENABLED(USE_USS)
     _left_sonar = std::make_unique<NewPing>(USS_LEFT_PIN, USS_LEFT_PIN, MAX_DISTANCE);
     _right_sonar = std::make_unique<NewPing>(USS_RIGHT_PIN, USS_RIGHT_PIN, MAX_DISTANCE);
@@ -39,6 +42,7 @@ void Peripherals::update() {
     EXECUTE_EVERY_N_MS(100, { readGesture(); });
     EXECUTE_EVERY_N_MS(500, { readBMP(); });
     EXECUTE_EVERY_N_MS(500, { readSonar(); });
+    EXECUTE_EVERY_N_MS(250, { readBattery(); });
 }
 
 void Peripherals::updatePins() {
@@ -87,6 +91,16 @@ void Peripherals::getIMUProto(socket_message_IMUData &data) {
     data.altitude = _bmp.getAltitude();
     data.bmp_temp = _bmp.getTemperature();
     data.pressure = _bmp.getPressure();
+#endif
+}
+
+bool Peripherals::getBatteryProto(socket_message_BatteryData &data) {
+#if FT_ENABLED(USE_ADS1115)
+    if (!_battery.isActive()) return false;
+    data.voltage = _battery.getVoltage();
+    return true;
+#else
+    return false;
 #endif
 }
 
@@ -144,6 +158,16 @@ void Peripherals::readSonar() {
     vTaskDelay(50 / portTICK_PERIOD_MS);
     _right_distance = _right_sonar->ping_cm();
 #endif
+}
+
+bool Peripherals::readBattery() {
+    bool updated = false;
+#if FT_ENABLED(USE_ADS1115)
+    beginTransaction();
+    updated = _battery.update();
+    endTransaction();
+#endif
+    return updated;
 }
 
 float Peripherals::angleX() {

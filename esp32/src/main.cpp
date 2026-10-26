@@ -338,6 +338,13 @@ void IRAM_ATTR serviceLoopEntry(void *) {
             }
         });
 
+        EXECUTE_EVERY_N_MS(1000, {
+            if (wsSocket.hasSubscribers(socket_message_Message_battery_tag)) {
+                socket_message_BatteryData battery = socket_message_BatteryData_init_zero;
+                if (peripherals.getBatteryProto(battery)) wsSocket.emit(battery);
+            }
+        });
+
         EXECUTE_EVERY_N_MS(60000, { FileSystemWS::fsHandler.cleanupExpiredTransfers(); });
 
         vTaskDelay(100 / portTICK_PERIOD_MS);

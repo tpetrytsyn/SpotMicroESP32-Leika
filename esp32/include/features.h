@@ -31,6 +31,10 @@
 #define USE_USS 0
 #endif
 
+#ifndef USE_ADS1115
+#define USE_ADS1115 0
+#endif
+
 #ifndef USE_PCA9685
 #define USE_PCA9685 1
 #endif
