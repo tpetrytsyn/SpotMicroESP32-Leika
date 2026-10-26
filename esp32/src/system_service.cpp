@@ -55,7 +55,7 @@ esp_err_t handleRestart(httpd_req_t *request) {
 }
 
 esp_err_t handleSleep(httpd_req_t *request) {
-    sleep();
+    if (!sleep()) return WebServer::sendError(request, 400, "Wake-up pin can't wake this chip from deep sleep");
     return WebServer::sendOk(request);
 }
 
@@ -89,7 +89,13 @@ void restart() {
         "Restart task", 4096, nullptr, 10, nullptr);
 }
 
-void sleep() {
+bool sleep() {
+    // Without a pin that can wake it, deep sleep only ends with a power cycle - refuse before Wi-Fi goes down
+    if (!esp_sleep_is_valid_wakeup_gpio(static_cast<gpio_num_t>(WAKEUP_PIN_NUMBER))) {
+        ESP_LOGE(TAG, "Sleep refused: GPIO %d can't wake this chip from deep sleep", WAKEUP_PIN_NUMBER);
+        return false;
+    }
+
     xTaskCreate(
         [](void *pvParameters) {
             for (;;) {
@@ -102,16 +108,23 @@ void sleep() {
                 uint64_t bitmask = (uint64_t)1 << (WAKEUP_PIN_NUMBER);
 
 #if CONFIG_IDF_TARGET_ESP32C3 || CONFIG_IDF_TARGET_ESP32C6 || CONFIG_IDF_TARGET_ESP32P4
-                esp_deep_sleep_enable_gpio_wakeup(bitmask, (esp_deepsleep_gpio_wake_up_mode_t)WAKEUP_SIGNAL);
+                esp_err_t err =
+                    esp_deep_sleep_enable_gpio_wakeup(bitmask, (esp_deepsleep_gpio_wake_up_mode_t)WAKEUP_SIGNAL);
 #else
-                esp_sleep_enable_ext1_wakeup(bitmask, (esp_sleep_ext1_wakeup_mode_t)WAKEUP_SIGNAL);
+                esp_err_t err = esp_sleep_enable_ext1_wakeup(bitmask, (esp_sleep_ext1_wakeup_mode_t)WAKEUP_SIGNAL);
                 esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
 #endif
+                if (err != ESP_OK) {
+                    // Wi-Fi is already down: restart rather than sleep with no way to wake
+                    ESP_LOGE(TAG, "Wake-up setup failed (%s), restarting instead", esp_err_to_name(err));
+                    esp_restart();
+                }
                 esp_deep_sleep_start();
             }
         },
         "Sleep task", 4096, nullptr, 10, nullptr);
     ESP_LOGI(TAG, "Setting device to sleep");
+    return true;
 }
 
 static const char *getChipModel() {

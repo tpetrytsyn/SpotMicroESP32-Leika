@@ -19,7 +19,7 @@ esp_err_t handleSleep(httpd_req_t *request);
 
 void reset();
 void restart();
-void sleep();
+bool sleep();
 void getAnalytics(socket_message_AnalyticsData &analytics);
 void getStaticSystemInformation(socket_message_StaticSystemInformation &info);
 
