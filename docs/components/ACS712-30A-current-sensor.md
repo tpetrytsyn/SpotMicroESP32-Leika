@@ -1,7 +1,13 @@
 # ACS712 30 A current sensor module
 
-Hall-effect sensor in pack `+`, read by the [ADS1115](ADS1115-16bit-ADC.md). **Decided, not
-bought.** Sourced as
+Hall-effect sensor in pack `+`, read by the [ADS1115](ADS1115-16bit-ADC.md).
+
+> **Deferred — not in the initial build.** It monitors, it doesn't protect: nothing acts on its
+> reading, and the fuses and CC cover faults without it ([wiring.md](../wiring.md#not-fitted)). The
+> wiring below is kept for fitting it later, which means cutting the trunk between the rocker and
+> the + split; ADS1115 `A1` stays free for it.
+
+Sourced as
 ["Модуль датчика струму ACS712 30 A"](https://www.rcscomponents.kiev.ua/product/modul-datchyka-strumu-acs712-30-a_103100.html)
 (RCS Components), 70 ₴. Chosen over re-shunting the INA226 on hand — no board modification, and
 the ADS1115 was already owned. The trade is accuracy.
@@ -21,7 +27,7 @@ the ADS1115 was already owned. The trade is accuracy.
 The 30 A variant is inferred from the name: read the chip marking (ends `30A`) before trusting
 66 mV/A — the 5 A and 20 A versions use 185 and 100 mV/A.
 
-## Use in this project
+## If fitted
 
 After the rocker, before the split, so it sees the whole robot's draw.
 
@@ -60,5 +66,5 @@ for coulomb counting.
 
 - [ ] Read the chip marking — the 30 A variant
 - [ ] Bench calibration of offset and gain
-- [ ] Direction under load — [build step 12](../pre-calibration-build.md#12-servo-rail-to-the-board)
-- [ ] Walking draw — the SZBK07's assembled CC waits for it
+- [ ] Direction under load: a ~1 A load must make `A1` **fall** ~66 mV per amp; if it rises, swap
+      the current wires

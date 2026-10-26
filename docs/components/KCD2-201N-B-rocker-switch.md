@@ -27,7 +27,7 @@ only. The switch-on surge into the converters' capacitors lasts milliseconds.
 
 ## Use in this project
 
-In pack `+` between the F114-C and the ACS712 ([wiring.md](../wiring.md#power-path)). Off means
+In pack `+` between the F114-C and the + split ([wiring.md](../wiring.md#power-path)). Off means
 zero draw.
 
 - **One pole.** Don't parallel the second — contact resistance never matches, so one pole carries

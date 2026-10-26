@@ -30,11 +30,11 @@ it's really a CN3903 — the figures are vendor claims; don't design against a d
 | | |
 | --- | --- |
 | Input | 6.0–8.4 V (2S) through the 2 A fuse — inside 5.5–30 V throughout |
-| Output | 5.0 V → ESP32 `VCC` and ACS712 `VCC` |
+| Output | 5.0 V → ESP32 `VCC` |
 | Load | a few hundred mA, ~¼ of the conservative rating; ~0.1 W dissipated |
 | Discharge | holds 5 V down to ~5.5 V in, outlasting the servo rail |
 
-`IN+` ← F117-C; `IN−` and `OUT−` → star (LIGHT 1); `OUT+` → ESP32 and ACS712. Solder the pads and
+`IN+` ← F117-C; `IN−` and `OUT−` → star (LIGHT 1); `OUT+` → ESP32. Solder the pads and
 strain-relieve the wires so the pads carry no load.
 
 **Meter 5.0 V unloaded before the ESP32 sees it** — a fixed module built with the wrong divider

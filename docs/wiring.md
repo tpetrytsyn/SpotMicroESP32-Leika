@@ -10,7 +10,8 @@ monitoring. This is the **final** wiring, used from the first bench session;
 | --- | --- |
 | **Core design** | [SZBK07](components/SZBK07-buck-converter.md), [CN3903](components/CN3903-5V-buck-module.md), PCA9685, [ESP32-S3-CAM](components/ESP32-S3-CAM-N16R8-Wi-Fi-Bluetooth.md), servo board, star point |
 | **Added, owned** | [2S 1500 mAh LiPo](components/ZOP-Power-2S-1500mAh-LiPo.md), [ADS1115](components/ADS1115-16bit-ADC.md) |
-| **Added, decided** | [Fuses](components/Daier-blade-fuse-holders.md), [rocker switch](components/KCD2-201N-B-rocker-switch.md), [ACS712](components/ACS712-30A-current-sensor.md), [voltage module](components/Voltage-sensor-0-25V-divider.md) |
+| **Added, decided** | [Fuses](components/Daier-blade-fuse-holders.md), [rocker switch](components/KCD2-201N-B-rocker-switch.md), [voltage module](components/Voltage-sensor-0-25V-divider.md) |
+| **Deferred** | [ACS712](components/ACS712-30A-current-sensor.md) current sensor — [Not fitted](#not-fitted) |
 | **Decided against** | Relay, LED button, arm switch, per-servo PTCs — [Not fitted](#not-fitted) |
 | **Open** | LiPo alarm — [Pending decisions](#pending-decisions) |
 
@@ -20,7 +21,7 @@ monitoring. This is the **final** wiring, used from the first bench session;
 | --- | --- |
 | PCA9685 16-channel PWM board | Servo signals only; the driver targets `0x40` **[code]** |
 | [SZBK07](components/SZBK07-buck-converter.md) 300 W CC/CV buck | Battery → 6.0 V servo rail, with a current limit |
-| [CN3903](components/CN3903-5V-buck-module.md) fixed 5 V buck | Battery → 5 V for the ESP32 and ACS712 |
+| [CN3903](components/CN3903-5V-buck-module.md) fixed 5 V buck | Battery → 5 V for the ESP32 |
 | XT60 × 2 | Robot-side half; the battery's half for the bench-supply lead |
 | [F114-C + 15 A, F117-C + 2 A](components/Daier-blade-fuse-holders.md) | Main and logic-branch fuses |
 | [KCD2-201N-B rocker](components/KCD2-201N-B-rocker-switch.md) | Main switch |
@@ -30,25 +31,22 @@ monitoring. This is the **final** wiring, used from the first bench session;
 | WAGO 221-415 × 3, 221-413 × 1 | [Ground star](#ground-star); the + split |
 | 1000–2200 µF, ≥ 16 V, low-ESR, 105 °C | Across the servo rails at the centre feed |
 | [ADS1115](components/ADS1115-16bit-ADC.md) | Four analog inputs over I2C |
-| [ACS712 30 A](components/ACS712-30A-current-sensor.md) + 10 kΩ | Pack current |
 | [Voltage module](components/Voltage-sensor-0-25V-divider.md) 0–25 V | Pack voltage |
-| Ferrules | ACS712 screw terminal |
 | 22 AWG; jumper wire | Light returns and the logic branch; `3V3`, `SDA`, `SCL`, signals |
 
 ## Power path
 
 ```
- 2S LiPo ─► XT60 ─► F114-C ─► rocker ─► ACS712 ─► + split ─┬──────────► SZBK07 +IN
-           12 AWG    15 A     1 pole    IP−→IP+    WAGO    │ 14 AWG     CV 6.0 V, CC set
-                                        reversed           │            OUT+ ─► servo board centre feed
-                                                           │
-                                                           └─► F117-C ─┬──► CN3903 IN+
-                                                               2 A     │    5.0 V fixed
-                                                                       │    OUT+ ─┬► ESP32 VCC
-                                                                       │          └► ACS712 VCC
-                                                                       └──► voltage module VCC
+ 2S LiPo ─► XT60 ─► F114-C ─► rocker ─► + split ─┬──────────► SZBK07 +IN
+           12 AWG    15 A     1 pole     WAGO    │ 14 AWG     CV 6.0 V, CC set
+                                                 │            OUT+ ─► servo board centre feed
+                                                 │
+                                                 └─► F117-C ─┬──► CN3903 IN+
+                                                     2 A     │    5.0 V fixed
+                                                             │    OUT+ ──► ESP32 VCC
+                                                             └──► voltage module VCC
 
- pack − ──────────────────────────────────────────────────► ★ star point, 14 AWG
+ pack − ────────────────────────────────────────► ★ star point, 14 AWG
  balance lead ── not connected; charger only
 ```
 
@@ -104,7 +102,7 @@ drop, is the constraint.
 | Conductor | Carries | Gauge |
 | --- | --- | --- |
 | XT60 → F114-C | full pack draw, **unfused** — keep it short | 12 AWG (holder lead) |
-| F114-C → rocker → ACS712 → split | full pack draw | 14 AWG |
+| F114-C → rocker → split | full pack draw | 14 AWG |
 | Pack `−` → star | up to ~12 A | 14 AWG |
 | Split → `SZBK07 +IN` | servo-rail input | 14 AWG |
 | `SZBK07 OUT+` → board 6 V rail | whole servo rail, capped by CC | 14 AWG |
@@ -164,7 +162,7 @@ the backstop.
 ## Main switch
 
 The [KCD2-201N-B rocker](components/KCD2-201N-B-rocker-switch.md), in pack `+` between the F114-C
-and the ACS712, is the **only** on/off control; off means zero draw.
+and the + split, is the **only** on/off control; off means zero draw.
 
 - One pole, 14 AWG soldered to the tabs; switch `+` only.
 - AC-only rating: at 2S the pack is below the ~12 V needed to sustain an arc, so breaking ~12 A
@@ -197,32 +195,30 @@ and the ACS712, is the **only** on/off control; off means zero draw.
 
 ## Monitoring
 
-Pack voltage and current through the [ADS1115](components/ADS1115-16bit-ADC.md). The ESP32 has no
-usable analog input: ADC1 is the camera bus, ADC2 is unreliable under Wi-Fi.
+Pack voltage through the [ADS1115](components/ADS1115-16bit-ADC.md). The ESP32 has no usable
+analog input: ADC1 is the camera bus, ADC2 is unreliable under Wi-Fi. No current sensing for now —
+the [ACS712](components/ACS712-30A-current-sensor.md) is deferred ([Not fitted](#not-fitted)).
 
 ```
-   ACS712 (reversed)       voltage module
-   ────────────────        ──────────────
-   VCC ◄── CN3903 5 V      VCC ◄── after F117-C
-   OUT ── 10 kΩ ──► A1     S ─────────────► A0
-   GND ─┐                  − ─┐
-        └──────────────────────┴──► ADS1115 GND ◄── star (sensor ground)
+   voltage module
+   ──────────────
+   VCC ◄── after F117-C
+   S ─────────────► A0
+   − ─────────────► ADS1115 GND ◄── star (sensor ground)
 ```
 
-| ADS1115 | Signal | At 8.4 V / 12 A |
+| ADS1115 | Signal | At 8.4 V |
 | --- | --- | --- |
 | `A0` | pack ÷ 5 — [voltage module](components/Voltage-sensor-0-25V-divider.md) | 1.68 V |
-| `A1` | 2.5 V − 66 mV/A — [ACS712](components/ACS712-30A-current-sensor.md), reversed | 1.71 V |
-| `A2` | free | — |
-| `A3` | free — optionally the 5 V rail **÷ 2** (2 × 10 kΩ): the ACS712's zero | 2.50 V |
+| `A1`–`A3` | free | — |
 
 Every input stays under 3.3 V — never the 5 V rail undivided. Pack voltage only: the balance
-charger equalises the cells, and its display is the per-cell check. The sensor modules take ground
+charger equalises the cells, and its display is the per-cell check. The voltage module takes ground
 from the ADS1115's `GND`, sharing its reference.
 
 Under load `A0` reads ~0.1–0.2 V below the pack terminals — the trunk's drop at 12 A
-**[inferred]** — so a 7.0 V cutoff trips early; firmware can add back I × R from `A1`. **Nothing in
-the firmware reads any of this yet** — [the ADS1115 doc](components/ADS1115-16bit-ADC.md#firmware).
+**[inferred]** — so a 7.0 V cutoff trips early, on the safe side. The firmware reads `A0` and streams
+pack voltage, but acts on nothing yet — [the ADS1115 doc](components/ADS1115-16bit-ADC.md#firmware).
 
 ## Power architecture
 
@@ -257,9 +253,9 @@ SZBK07 needs ~1.5–2 V over its output **[inferred]**; the CN3903 ~0.5 V (5.5 V
 | Assembled robot | **~12 A** — what the trunk and the 15 A fuse are sized for |
 
 12 A is a ceiling, not a prediction: under the SZBK07's dependable 15 A, and 8C on the pack.
-Measure walking draw with the ACS712 and lower it if you can. Setting ~12 A by shorting the output
-through an ammeter exceeds most meters' 10 A range — use a 20 A range within its time limit, or a DC
-clamp meter.
+Measure walking draw with a DC clamp meter on the trunk and lower it if you can. Setting ~12 A by
+shorting the output through an ammeter exceeds most meters' 10 A range — use a 20 A range within
+its time limit, or the clamp meter.
 
 **Thermal:** the SZBK07 runs cold at calibration currents; its 300 W figure assumes forced air.
 Feel the heatsinks after sustained multi-servo load.
@@ -275,19 +271,19 @@ Feel the heatsinks after sustained multi-servo load.
 
 ## Not fitted
 
-Decided against, so it isn't re-litigated:
+Decided against, so it isn't re-litigated — or deferred:
 
 | Item | Why not |
 | --- | --- |
+| **[ACS712](components/ACS712-30A-current-sensor.md) current sensor** — deferred | Monitoring only, not protection: nothing acts on its reading, and the fuses and CC cover faults without it. Walking draw is a one-off clamp-meter measurement. Fitting it later means cutting the trunk between the rocker and the + split; `A1` stays free for it. |
 | **Relay** (ESP32-controlled servo power) | The firmware already boots deactivated, and deactivate stops PWM. Its real gain, no drain in deep sleep, is moot with the rocker as the off switch. Costs a single point of failure in the servo path (contact bounce on impact), a driver, 90–180 mA of coil current and firmware. Kubina's build fitted one and forced it permanently on. |
 | **LED button** (wake / soft on-off) | Deep-sleep "soft off" still drains the pack and wakes through a full reboot anyway. A latching button also fights the level-triggered wake. Leika lists it as optional. |
 | **Hardware servo arm switch** | Handling the robot powered with servos dead — not needed now. Adding it later means splicing a relay into `SZBK07 +IN`. |
 | **Per-servo PTC fuses** | Twelve more parts in the servo path; the risks they'd cover are accepted and noted under [Servo distribution](#servo-distribution). |
 
-With no wake button, **don't use UI sleep**: `/api/system/sleep` leaves the robot asleep until the
-rocker power-cycles it. The configured `WAKEUP_PIN_NUMBER=38` couldn't wake an S3 anyway: ext1
-wake takes only IO0–21 **[datasheet]**, and
-[system_service.cpp](../esp32/src/system_service.cpp) ignores the error **[code]**.
+With no wake button, sleep is off: the configured `WAKEUP_PIN_NUMBER=38` can't wake an S3, as ext1
+wake takes only IO0–21 **[datasheet]**, so `/api/system/sleep` refuses with 400
+([system_service.cpp](../esp32/src/system_service.cpp)) rather than sleeping until a power cycle.
 
 Free GPIO after I2C and the WS2812: IO19, IO20, and IO38–40 if the microSD slot is unused.
 
@@ -299,8 +295,8 @@ Free GPIO after I2C and the WS2812: IO19, IO20, and IO38–40 if the microSD slo
 
 ## Open questions
 
-- [ ] **Walking draw** — sets CC, confirms the 15 A fuse, gives runtime. The ACS712 measures it
-      once firmware exists.
+- [ ] **Walking draw** — sets CC, confirms the 15 A fuse, gives runtime. A DC clamp meter on the
+      trunk measures it.
 - [ ] **Idle draw** — logic plus twelve deactivated servos, replacing the estimate above.
       [Build steps 9 and 13](pre-calibration-build.md#9-esp32-onto-the-harness) take the first readings.
 - [ ] **Is the ESP32 board's `3V3` pin a regulator output?** Build step 9 answers it.

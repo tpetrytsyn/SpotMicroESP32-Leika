@@ -29,7 +29,7 @@ Shelter the lever, or fit a guard, so a fall can't flip it.
 | Pin | To |
 | --- | --- |
 | POWER | from the F114-C |
-| ACC | to the ACS712 and the rest of the robot |
+| ACC | to the + split and the rest of the robot |
 | GND | star — a spare LIGHT position; LED current only |
 
 **Don't swap POWER and ACC:** the LED sits between ACC and GND, so swapped it stays lit and drains

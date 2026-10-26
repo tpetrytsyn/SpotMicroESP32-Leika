@@ -27,7 +27,7 @@ pio device monitor
 
 This fork's board is **`s3cam`** (ESP32-S3-CAM, ESP-IDF 5.5): build and upload from **PowerShell in
 `D:\s`**, never Git Bash, and flash manually over UART — see
-[the board doc](docs/components/ESP32-S3-CAM-N16R8-Wi-Fi-Bluetooth.md#building-on-windows).
+[build-and-upload.md](docs/build-and-upload.md).
 
 No working firmware tests: `esp32/test/gait_performance.cpp` predates the ESP-IDF migration and
 doesn't compile. Validate with `pio run` plus the simulation's Python port of the gait.

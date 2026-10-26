@@ -1,6 +1,6 @@
 # ADS1115 16-bit I2C ADC module
 
-Four analog inputs on the I2C bus, for pack voltage and current. **Owned.** Sourced as
+Four analog inputs on the I2C bus, for pack voltage. **Owned.** Sourced as
 ["АЦП модуль 16-біт ADS1115 I2C"](https://prom.ua/ua/p2796766325-atsp-modul-bit.html) (prom.ua).
 
 The ESP32-S3-CAM has no usable analog input: ADC1 (GPIO 1–10) is the camera bus, and the free
@@ -31,37 +31,44 @@ scaled to fit.
 
 ## Use in this project
 
-| Pin | To | At 8.4 V / 12 A |
+| Pin | To | At 8.4 V |
 | --- | --- | --- |
 | `VDD` | ESP32 `3V3` | — |
 | `GND` | star, as the sensor ground | — |
 | `SDA` / `SCL` | IO47 / IO41, shared with the PCA9685 | — |
 | `ADDR` | GND → `0x48` | — |
 | `A0` | [voltage module](Voltage-sensor-0-25V-divider.md) `S` — pack voltage | 1.68 V |
-| `A1` | [ACS712](ACS712-30A-current-sensor.md) `OUT` via 10 kΩ — pack current | 1.71 V |
-| `A2` | free | — |
-| `A3` | free — optionally the 5 V rail **÷ 2** (2 × 10 kΩ): the ACS712's zero | 2.50 V |
+| `A1` | free — kept for the [ACS712](ACS712-30A-current-sensor.md), deferred | — |
+| `A2`, `A3` | free | — |
 
-- **Gain** ±4.096 V on every channel: 125 µV per count — 0.6 mV of pack voltage, 1.9 mA of current.
-  The sensors limit accuracy, not the ADC.
-- **Ground:** one 22 AWG sensor ground from the star; the two sensor modules take their ground
-  from this module.
+- **Gain** ±4.096 V on every channel: 125 µV per count — 0.6 mV of pack voltage. The sensor
+  limits accuracy, not the ADC.
+- **Ground:** one 22 AWG sensor ground from the star; the voltage module takes its ground from
+  this module.
 - **Addresses:** PCA9685 `0x40`; MPU6050, HMC5883L, BMP180, BNO055 if ever fitted `0x68`, `0x1E`,
   `0x77`, `0x29` **[code]** — no conflicts.
 
 ## Firmware
 
-**Nothing reads it yet.** A driver belongs in `esp32/include/peripherals/drivers/` on the shared
-`I2CBus`, wrapped by a role-level sensor the way `imu.h` wraps the MPU6050. The bus is also the
-PCA9685's, written every 10 ms: single-shot conversions at 128 SPS take ~8 ms per channel, so poll
-at a few hertz, not per control tick **[inferred]**. The `s3cam` env runs the bus at 400 kHz, the
-ADS1115's maximum ([build step 1](../pre-calibration-build.md#1-esp32-alone-flash-and-check)).
+`USE_ADS1115` in [features.ini](../../esp32/features.ini). Driver
+[ads1115.h](../../esp32/include/peripherals/drivers/ads1115.h), role class
+[battery.h](../../esp32/include/peripherals/battery.h):
 
-`I2CBus` caches one device handle, swapped whenever the address changes, and has no lock: a driver
-polling from another task must not interleave with the control task's PCA9685 writes.
+- **Continuous mode on `A0`**, ±4.096 V, 128 SPS, so a read is one 2-byte fetch. `Peripherals`
+  polls it at 4 Hz from the control task — the PCA9685's task, so the writes never interleave.
+- **Pack volts** = input × `BATTERY_DIVIDER_RATIO` (default 5.0, the nominal divider), smoothed.
+  Calibrate by overriding it in `build_flags`.
+- **WebSocket `battery`** (`BatteryData.voltage`), sent each second to subscribers — only once the
+  ADS1115 has initialised, which happens at boot only. `features.battery` reports the flag.
+- **UI:** the status bar shows the pack voltage and a battery icon — amber below 7.3 V, red below
+  the 7.0 V cutoff; thresholds in
+  [BatteryIndicator.svelte](../../app/src/lib/components/statusbar/BatteryIndicator.svelte).
+
+`I2CBus` has no lock: the service task's I2C scan can still interleave with control-task traffic.
 
 ## Open items
 
 - [ ] Confirm the pull-ups and the `ADDR` pull-down
-- [ ] Driver, proto message and UI
-- [ ] `0x48` on the I2C scan — [build step 11](../pre-calibration-build.md#11-monitoring-ads1115-voltage-module-acs712)
+- [x] Driver, proto message and UI
+- [ ] Calibrate `BATTERY_DIVIDER_RATIO` against a meter
+- [ ] `0x48` on the I2C scan — [build step 11](../pre-calibration-build.md#11-monitoring-ads1115-and-voltage-module)

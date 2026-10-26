@@ -12,10 +12,9 @@ order of work.
 **Parts:** everything in [wiring.md → Materials](wiring.md#materials).
 
 **Tools:** multimeter with DC volts, continuity and a 10 A range · bench supply with a current
-limit · soldering iron that can heat 14 AWG (60 W+) · ferrule crimper · CH343P adapter ·
-a vice or clamp.
+limit · soldering iron that can heat 14 AWG (60 W+) · CH343P adapter · a vice or clamp.
 
-**Consumables:** solder, heat-shrink, ferrules, Kapton tape or hot glue, nail varnish.
+**Consumables:** solder, heat-shrink, Kapton tape or hot glue, nail varnish.
 
 **Rules for every step**
 
@@ -107,16 +106,15 @@ No ferrules.
 
 > **✅ Test 5** — continuity across all three blocks; tug every link.
 
-## 6. Power input: XT60 → fuse → rocker → ACS712 → split
+## 6. Power input: XT60 → fuse → rocker → split
 
 1. Solder the **F114-C**'s 12 AWG lead into the robot-side XT60 `+`, cut as short as it will go.
    Fuse **out**; discard any 30/40 A fuses it came with.
 2. XT60 `−` → 14 AWG → **HEAVY**.
-3. F114-C → 14 AWG → **rocker** (one pole, soldered, heat-shrunk) → 14 AWG → **ACS712 `IP−`**.
-   Current enters at `IP−`: reversed on purpose. Ferrules on both ACS712 wires.
-4. ACS712 `IP+` → 14 AWG → the **+ split**, a WAGO 221-413. From it: 14 AWG for the SZBK07, and
-   the F117-C's input lead. Insulate their far ends.
-5. The **bench-supply lead**: 14 AWG with an XT60 of the **battery's** gender (the shrouded
+3. F114-C → 14 AWG → **rocker** (one pole, soldered, heat-shrunk) → 14 AWG → the **+ split**, a
+   WAGO 221-413. From it: 14 AWG for the SZBK07, and the F117-C's input lead. Insulate their far
+   ends.
+4. The **bench-supply lead**: 14 AWG with an XT60 of the **battery's** gender (the shrouded
    half), + and − marked.
 
 > **✅ Test 6**
@@ -201,27 +199,35 @@ fights the CN3903.
 >   Walk all twelve; this proves every wire and the channel order.
 > - **Active** off: every signal pin ~0 V.
 
-## 11. Monitoring: ADS1115, voltage module, ACS712
+## 11. Monitoring: ADS1115 and voltage module
 
 1. **ADS1115:** `VDD` ← ESP32 `3V3`; `GND` ← 22 AWG from **LIGHT 2**, the *sensor ground*;
    `ADDR` → `GND` (address 0x48). Not `SDA`/`SCL` yet.
-2. **ACS712:** `VCC` ← CN3903 `OUT+` (splice); `GND` → ADS1115 `GND`; `OUT` → **10 kΩ** → free
-   end.
-3. **Voltage module:** input `VCC` ← the tail after the 2 A fuse, its input `GND` unused;
+2. **Voltage module:** input `VCC` ← the tail after the 2 A fuse, its input `GND` unused;
    `−` → ADS1115 `GND`; `S` → free end.
 
-**Firmware:** nothing reads the ADS1115 yet, so these tests use the scan and the meter. The
-bus must be at 400 kHz (step 1).
+**Firmware:** with `USE_ADS1115=1` it reads `A0` and shows pack voltage in the status bar, but
+detects the ADS1115 **at boot only** — power-cycle after connecting it. The bus must be at
+400 kHz (step 1).
 
 > **✅ Test 11a** — rocker on, nothing at the ADS1115's inputs yet:
 > - ADS1115 `VDD`, `SDA`, `SCL`: 3.3 V.
 > - Voltage module `S` → GND: supply ÷ 5 (≈ 1.48 V at 7.4 V).
-> - ACS712, at the resistor's free end → GND: ≈ 2.5 V.
 > - Nothing above 3.3 V.
 
-4. Rocker off. ADS1115 onto the bus; `S` → **`A0`**; the 10 kΩ → **`A1`**.
+3. Rocker off. ADS1115 onto the bus; `S` → **`A0`**.
 
-> **✅ Test 11b** — I2C scan: **`0x40`** and **`0x48`**. `A0` and `A1` read as in 11a.
+> **✅ Test 11b** — I2C scan: **`0x40`** and **`0x48`**. `A0` reads as in 11a.
+
+4. Rocker off and on, so the firmware finds the ADS1115.
+
+> **✅ Test 11c** — the status bar shows the pack voltage, close to the meter at the voltage
+> module's input (±0.15 V with 1 % resistors, up to ±0.7 V with 5 %); the boot log has no
+> `ADS1115 initialization failed`.
+
+5. **Calibrate**, at rest: `BATTERY_DIVIDER_RATIO = 5.0 × meter ÷ status bar`. Add
+   `-D BATTERY_DIVIDER_RATIO=<value>f` to the `s3cam` env's `build_flags`, then rebuild and flash
+   ([build-and-upload.md](build-and-upload.md)). Re-check: within ~0.02 V.
 
 ## 12. Servo rail to the board
 
@@ -230,13 +236,10 @@ SZBK07 `OUT+` → **6 V centre feed**; board **GND centre** → 14 AWG → **HEA
 > **✅ Test 12** — rocker on, no servos:
 > - Every header: **6.0 V** from the middle pin to the GND pin, positive on the middle.
 > - Signal pins ~0 V (Active off).
-> - *Optional, checks the ACS712:* supply limit to 2 A; hold a 5 Ω ≥ 10 W resistor (or a
->   12 V 21 W car bulb) across one header's 6 V and GND pins for a few seconds — it gets hot.
->   The supply current rises by ~1 A, and `A1` must **fall** by ~66 mV per amp of that rise.
->   If it rises, the ACS712 is mounted forward: swap its two current wires.
-> - *Optional, measures the SZBK07's dropout:* the same load, supply swept 8.4 → 7.0 V. Note the
->   input where the rail leaves 6.0 V — a light-load figure; it rises with current
->   ([why it matters](wiring.md#battery-and-headroom)).
+> - *Optional, measures the SZBK07's dropout:* supply limit to 2 A; hold a 5 Ω ≥ 10 W resistor (or
+>   a 12 V 21 W car bulb) across one header's 6 V and GND pins — it gets hot — and sweep the supply
+>   8.4 → 7.0 V. Note the input where the rail leaves 6.0 V — a light-load figure; it rises with
+>   current ([why it matters](wiring.md#battery-and-headroom)).
 
 ## 13. First servo
 

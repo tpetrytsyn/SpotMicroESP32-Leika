@@ -22,6 +22,7 @@ this repo, and **[inferred]** reasoned — confirm on hardware.
 
 Procedures, in build order:
 
+1. [Build and upload](build-and-upload.md) — compiling the firmware and web app, flashing over UART
 1. [Wiring and power](wiring.md) — the harness reference: power path, fuses, grounding, I2C, monitoring
 1. [Pre-calibration build](pre-calibration-build.md) — wiring it block by block, with a test after each
 1. [Servo calibration](servo-calibration.md) — per-servo parameters, on the finished harness
@@ -38,7 +39,6 @@ up.
 - [Daier F114-C / F117-C fuse holders](components/Daier-blade-fuse-holders.md) — 15 A main and 2 A branch fuses
 - [KCD2-201N-B rocker switch](components/KCD2-201N-B-rocker-switch.md) — main power switch, the only on/off
 - [ADS1115 ADC](components/ADS1115-16bit-ADC.md) — 16-bit, 4 analog inputs over I2C, for monitoring
-- [ACS712 30 A current sensor](components/ACS712-30A-current-sensor.md) — pack current
 - [Voltage sensor 0–25 V](components/Voltage-sensor-0-25V-divider.md) — ÷5 divider, pack voltage
 
 Parts **evaluated and not chosen**, kept for reference in
@@ -46,6 +46,10 @@ Parts **evaluated and not chosen**, kept for reference in
 
 - [LM2596S CC/CV module](components/alternatives/LM2596S-CC-CV-module.md) — adjustable 5 V, superseded by the CN3903
 - [ASW-07D-2 toggle switch](components/alternatives/ASW-07D-2-toggle-switch.md) — DC-rated main switch, the alternative to the rocker
+
+Parts **deferred** — documented, not in the initial build:
+
+- [ACS712 30 A current sensor](components/ACS712-30A-current-sensor.md) — pack current
 
 ## About Spot
 
