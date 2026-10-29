@@ -70,5 +70,5 @@ scaled to fit.
 
 - [ ] Confirm the pull-ups and the `ADDR` pull-down
 - [x] Driver, proto message and UI
-- [ ] Calibrate `BATTERY_DIVIDER_RATIO` against a meter
-- [ ] `0x48` on the I2C scan — [build step 11](../pre-calibration-build.md#11-monitoring-ads1115-and-voltage-module)
+- [x] Calibrate `BATTERY_DIVIDER_RATIO` against a meter — 5.043 in the `s3cam` env
+- [x] `0x48` on the I2C scan — [build step 11](../pre-calibration-build.md#11-monitoring-ads1115-and-voltage-module)
